@@ -1,6 +1,6 @@
 #2021 Levi D. Smith
 
-DEBUG = false
+DEBUG = true
 
 class Entry
     attr_accessor :strSignalPatterns
@@ -122,17 +122,17 @@ class Entry
 
         if (DEBUG)
             puts "Map: "
-            @segmentMap.each do | key, value |
+            @segmentMap.sort_by { | key | key }.to_h.each do | key, value |
                 puts "#{key} = #{value}"
             end
         end
 
 
-        for i in 0...self.strOutputValues.length
-            for j in 0...self.strOutputValues[i].length
-                cOld = self.strOutputValues[i][j]
+        for i in 0...strOutputValues.length
+            for j in 0...strOutputValues[i].length
+                cOld = strOutputValues[i][j]
 
-                self.strOutputValues[i][j] = @segmentMap[cOld]
+                strOutputValues[i][j] = @segmentMap[cOld]
             end
 
         end
@@ -234,7 +234,6 @@ f.close()
 iTotalCount = 0
 entries.each do | entry |
     entry.createSegmentMap()
-
 
     iTotalCount += entry.getOutputValue()
     puts "Entry value: #{entry.getOutputValue()}"
