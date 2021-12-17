@@ -32,6 +32,8 @@ puts "u: #{u} v: #{v}"
 BIG_NUMBER = 400 #keep increasing this until the yBest doesn't change anymore to get the answer
                  #not the best solution, but couldn't figure out the correct way to
                  #get the upper bound
+
+iCount = 0
 yBest = 0
 for xVel in (1..u)
     for yVel in (v..BIG_NUMBER)
@@ -62,12 +64,14 @@ for xVel in (1..u)
             if (yMax > yBest)
                 yBest = yMax
             end
-            #break
+            iCount += 1
+            break
         end
         ) until yCurrent < v
 
     end
 end
 
-puts "yBest #{yBest}"
+#puts "yBest #{yBest}"
+puts "Hit count: #{iCount}"
 
