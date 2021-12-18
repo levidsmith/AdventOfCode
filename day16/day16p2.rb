@@ -41,12 +41,16 @@ class Packet
         strBits = getBits()
         readPacket(strBits)
 
-        puts "Sum of Versions: #{@iSumOfVersion}"
     end
 
         
     def readPacket(strBits)
         puts "Packet: #{strBits}"
+        
+        
+        iPacketValue = 0
+        subPacketValues = Array.new
+
         iBitsRead = 0
 
         packetVersion = strBits[0...3]
@@ -58,18 +62,20 @@ class Packet
 
         typeID = strBits[3...6]
         iBitsRead += 3
-        print "  typeID: #{typeID} => #{binaryStringToDecimal(typeID)}"
+        iTypeID = binaryStringToDecimal(typeID)
+        print "  typeID: #{typeID} => #{iTypeID}"
 
-        if (binaryStringToDecimal(typeID) == 4)
+        if (iTypeID == 4)
             puts " (literal)"
             literalValue = strBits[6...strBits.length]
 #            puts "  binary String: #{literalValue}"
             
-            value = literalToBinaryString(literalValue)
-            puts "  binaryNumber: #{value[0]}"
+            binaryValue = literalToBinaryString(literalValue)
+            puts "  binaryNumber: #{binaryValue[0]}"
 
-            puts "  decimal: #{binaryStringToDecimal(value[0])}"
-            iBitsRead += value[1]
+            iPacketValue = binaryStringToDecimal(binaryValue[0])
+            puts "  decimal: #{iPacketValue}"
+            iBitsRead += binaryValue[1]
         else
             puts " (operator)"
             lengthTypeID = strBits[6]
@@ -91,7 +97,10 @@ class Packet
                 
                 i = 7 + 15
                 while (i < 7 + 15 + iTotalLength)
-                    iPacketSize = readPacket(strBits[i...i + iTotalLength])
+                    #iPacketSize = readPacket(strBits[i...i + iTotalLength])
+                    subPacket = readPacket(strBits[i...i + iTotalLength])
+                    subPacketValues << subPacket[0]
+                    iPacketSize = subPacket[1]
                     i += iPacketSize
                     iBitsRead += iPacketSize     
                 end
@@ -107,7 +116,10 @@ class Packet
                 i = 7 + 11
                 iPacketsRead = 0
                 while (iPacketsRead < iSubPackets)
-                    iPacketSize = readPacket(strBits[i...strBits.length])
+                    #iPacketSize = readPacket(strBits[i...strBits.length])
+                    subPacket = readPacket(strBits[i...strBits.length])
+                    subPacketValues << subPacket[0]
+                    iPacketSize = subPacket[1]
                     i += iPacketSize
                     iBitsRead += iPacketSize
                     iPacketsRead += 1
@@ -118,10 +130,52 @@ class Packet
 
         end
 
-        puts "  bits read: #{iBitsRead}"
+#        puts "  bits read: #{iBitsRead}"
 
-        return iBitsRead
+        puts "  typeID: #{iTypeID}"
+        puts "  subPackets: #{subPacketValues}"
+        case iTypeID
+        when 0 
+            iPacketValue = subPacketValues.sum
+        when 1
+            iPacketValue = subPacketValues[0]
+            for i in (1...subPacketValues.length)
+                iPacketValue *= subPacketValues[i]
+            end
+        when 2
+            iPacketValue = subPacketValues.min
+        when 3
+            iPacketValue = subPacketValues.max
+        when 5
+            if (subPacketValues[0] > subPacketValues[1])
+                iPacketValue = 1
+            else 
+                iPacketValue = 0
+            end
+        when 6
+            if (subPacketValues[0] < subPacketValues[1])
+                iPacketValue = 1
+            else 
+                iPacketValue = 0
+            end
+        when 7
+            if (subPacketValues[0] == subPacketValues[1])
+                iPacketValue = 1
+            else 
+                iPacketValue = 0
+            end
 
+
+        end
+
+        puts "  packetValue: #{iPacketValue}"
+        puts "EndPacket"
+
+
+        value = Array.new
+        value << iPacketValue
+        value << iBitsRead
+        return value
 
     end
 
