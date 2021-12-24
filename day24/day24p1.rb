@@ -154,6 +154,54 @@ end
 
 
 
+def analyzeInput(strInputs)
+    #method based on approach from https://github.com/dphilipson/advent-of-code-2021/blob/master/src/days/day24.rs
+    strDiv = ""
+    strCheck = ""
+    strOffset = ""
+
+    strOutput = ""
+    stack = Array.new
+
+    iLine = 0
+    puts "#{"div".rjust(10, " ")} #{"check".rjust(10, " ")} #{"offset".rjust(10, " ")}"
+    strInputs.each do | strInput |
+        if (iLine % 18 == 4)
+            strDiv = strInput.split(" ")[2]
+        elsif (iLine % 18 == 5)
+            strCheck = strInput.split(" ")[2]
+        elsif(iLine % 18 == 15)
+            strOffset = strInput.split(" ")[2]
+            puts "#{strDiv.rjust(10, " ")} #{strCheck.rjust(10, " ")} #{strOffset.rjust(10, " ")}"
+
+            if (strCheck.to_i > 0)
+#                strOutput += "PUSH input[#{(iLine / 18).floor}] + #{strOffset}"
+#                strOutput += "\n"
+                stack.push([(iLine / 18).floor, strOffset.to_i])
+            else 
+                pop_value = stack.pop
+#                strOutput += "POP.  Must have input[#{(iLine / 18).floor}] == popped_value #{strCheck}"
+#                strOutput += "POP.  Must have input[#{(iLine / 18).floor}] == input[#{pop_value[0]}] + #{strCheck.to_i + pop_value[1] }"
+                strOutput += "input[#{(iLine / 18).floor}] == input[#{pop_value[0]}] + #{strCheck.to_i + pop_value[1] }"
+                strOutput += "\n"
+            end
+
+
+        elsif(iLine % 18 == 0)
+            strDiv = ""
+            strCheck = ""
+            strOffset = ""
+                   
+        end
+
+        iLine += 1
+    end
+
+    puts strOutput
+
+end
+
+
 strFile = ARGV[0]
 
 strInputs = Array.new
@@ -169,13 +217,31 @@ end
 
 alu = ALU.new()
 
+analyzeInput(strInputs)
 
+
+iModelNumber = 99298993199873
+iModelNumber = 73181221197111
+strModelNumber = "#{iModelNumber}"
+alu.setInputStream(strModelNumber)
+
+strInputs.each do | strInput|
+    alu.processLine(strInput)
+end
+puts alu
+puts "#{iModelNumber} isValid: #{alu.isModelNumberValid()}"
+
+
+
+=begin
 #iModelNumber = 99999999999999 #takes too long
 #iModelNumber = 49999999999999 #valid
 # iModelNumber = 51000000000000 #takes too long
-# iModelNumber = 50000000032500 #slow
- iModelNumber = 50000000032500 #slow
-keepLooping = true
+# iModelNumber = 50000000032500 #slow, stops at 49999999999999
+ iModelNumber = 50000000032500 #slow, stops at 49999999999999
+
+
+ keepLooping = true
 while (keepLooping)
     strModelNumber = "#{iModelNumber}"
     puts "Model Number: #{strModelNumber}"
@@ -199,3 +265,5 @@ while (keepLooping)
     end
 
 end
+=end
+
