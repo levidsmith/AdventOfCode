@@ -153,6 +153,7 @@ class ALU
 end
 
 
+MODEL_LENGTH = 14
 
 def analyzeInput(strInputs)
     #method based on approach from https://github.com/dphilipson/advent-of-code-2021/blob/master/src/days/day24.rs
@@ -162,6 +163,13 @@ def analyzeInput(strInputs)
 
     strOutput = ""
     stack = Array.new
+
+    mapDependency = Hash.new
+    mapDependencyOffset = Hash.new
+
+    iGreatestModel = Array.new(MODEL_LENGTH) { nil }
+    iLeastModel = Array.new(MODEL_LENGTH) { nil }
+
 
     iLine = 0
     puts "#{"div".rjust(10, " ")} #{"check".rjust(10, " ")} #{"offset".rjust(10, " ")}"
@@ -175,14 +183,16 @@ def analyzeInput(strInputs)
             puts "#{strDiv.rjust(10, " ")} #{strCheck.rjust(10, " ")} #{strOffset.rjust(10, " ")}"
 
             if (strCheck.to_i > 0)
-#                strOutput += "PUSH input[#{(iLine / 18).floor}] + #{strOffset}"
-#                strOutput += "\n"
                 stack.push([(iLine / 18).floor, strOffset.to_i])
             else 
                 pop_value = stack.pop
-#                strOutput += "POP.  Must have input[#{(iLine / 18).floor}] == popped_value #{strCheck}"
-#                strOutput += "POP.  Must have input[#{(iLine / 18).floor}] == input[#{pop_value[0]}] + #{strCheck.to_i + pop_value[1] }"
-                strOutput += "input[#{(iLine / 18).floor}] == input[#{pop_value[0]}] + #{strCheck.to_i + pop_value[1] }"
+                iLHS = (iLine / 18).floor
+                iRHS = pop_value[0]
+                iRHSOffset = strCheck.to_i + pop_value[1]
+                strOutput += "input[#{iLHS}] == input[#{iRHS}] + #{iRHSOffset }"
+
+                mapDependency[iLHS] = iRHS
+                mapDependencyOffset[iLHS] = iRHSOffset
                 strOutput += "\n"
             end
 
@@ -198,6 +208,47 @@ def analyzeInput(strInputs)
     end
 
     puts strOutput
+
+    #Figure out the greatest number
+    for i in 0...MODEL_LENGTH do
+            if (mapDependency.values.include?(i))
+                
+                iLHS = mapDependency.key(i)
+                if (mapDependencyOffset[iLHS] < 0)
+                    iValue = 9
+                else
+                    iValue = 9 - mapDependencyOffset[iLHS]
+                end
+                
+                iGreatestModel[i] = iValue
+                
+                iGreatestModel[iLHS] = iGreatestModel[i] + mapDependencyOffset[iLHS]
+            end
+    end
+
+    puts "Greatest: " + iGreatestModel.join
+    
+
+    #Figure out the least number (with no zeroes)
+    for i in 0...MODEL_LENGTH do
+        if (mapDependency.values.include?(i))
+            
+            iLHS = mapDependency.key(i)
+            if (mapDependencyOffset[iLHS] > 0)
+                iValue = 1
+            else
+                iValue = 1 - mapDependencyOffset[iLHS]
+            end
+            
+            iLeastModel[i] = iValue
+            iLeastModel[iLHS] = iLeastModel[i] + mapDependencyOffset[iLHS]
+        end
+    end
+
+    puts "Least: " + iLeastModel.join
+
+    return [iLeastModel.join.to_i, iGreatestModel.join.to_i]
+
 
 end
 
@@ -217,11 +268,15 @@ end
 
 alu = ALU.new()
 
-analyzeInput(strInputs)
 
 
-iModelNumber = 99298993199873
-iModelNumber = 73181221197111
+
+#iModelNumber = 99298993199873
+#iModelNumber = 73181221197111
+#iModelNumber = analyzeInput(strInputs)[0]
+iModelNumber = analyzeInput(strInputs)[1]
+
+
 strModelNumber = "#{iModelNumber}"
 alu.setInputStream(strModelNumber)
 
@@ -230,40 +285,3 @@ strInputs.each do | strInput|
 end
 puts alu
 puts "#{iModelNumber} isValid: #{alu.isModelNumberValid()}"
-
-
-
-=begin
-#iModelNumber = 99999999999999 #takes too long
-#iModelNumber = 49999999999999 #valid
-# iModelNumber = 51000000000000 #takes too long
-# iModelNumber = 50000000032500 #slow, stops at 49999999999999
- iModelNumber = 50000000032500 #slow, stops at 49999999999999
-
-
- keepLooping = true
-while (keepLooping)
-    strModelNumber = "#{iModelNumber}"
-    puts "Model Number: #{strModelNumber}"
-    alu.setInputStream(strModelNumber)
-    strInputs.each do | strInput|
-        alu.processLine(strInput)
-#        puts alu
-    end
-
-    if (alu.isModelNumberValid())
-        puts "#{strModelNumber} is valid"
-        keepLooping = false
-    else
-        iModelNumber -= 1
-
-        if (iModelNumber < 0)
-            puts "No valid model numbers"
-            keepLooping = false
-
-        end
-    end
-
-end
-=end
-
