@@ -1,4 +1,4 @@
-puts ARGV[0]
+#2022 Levi D. Smith (levidsmith.com)
 
 bags = Array.new
 f = File.new(ARGV[0])
