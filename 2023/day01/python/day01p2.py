@@ -37,7 +37,3 @@ def main():
     print(iSum)
 
 main()
-
-#142
-#281
-#56017
